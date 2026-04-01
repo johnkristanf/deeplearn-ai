@@ -1,7 +1,6 @@
 "use client"
 
-import * as React from "react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { CourseService } from "@/services/courses/courses.service"
 import { toast } from "sonner"
 import {
@@ -30,6 +29,8 @@ interface CourseDrawerProps {
 }
 
 export function CourseDrawer({ isOpen, onOpenChange, courseData }: CourseDrawerProps) {
+    const queryClient = useQueryClient()
+
     const saveCourseMutation = useMutation({
         mutationFn: async () => {
             if (!courseData) throw new Error("No course data");
@@ -37,6 +38,7 @@ export function CourseDrawer({ isOpen, onOpenChange, courseData }: CourseDrawerP
         },
         onSuccess: () => {
             toast.success("Course saved successfully.")
+            queryClient.invalidateQueries({ queryKey: ["courses"] })
             onOpenChange(false);
         },
         onError: (error) => {
@@ -46,6 +48,7 @@ export function CourseDrawer({ isOpen, onOpenChange, courseData }: CourseDrawerP
     });
 
     const isSaving = saveCourseMutation.isPending;
+    const isAlreadySaved = !!courseData?.id;
 
     const handleSave = () => {
         saveCourseMutation.mutate();
@@ -148,10 +151,14 @@ export function CourseDrawer({ isOpen, onOpenChange, courseData }: CourseDrawerP
                         )}
                     </ScrollArea>
                     <DrawerFooter className="flex flex-row justify-end space-x-2 pb-8">
-                        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>
-                        <Button onClick={handleSave} disabled={isSaving}>
-                            {isSaving ? "Saving..." : "Save"}
+                        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+                            {isAlreadySaved ? "Close" : "Cancel"}
                         </Button>
+                        {!isAlreadySaved && (
+                            <Button onClick={handleSave} disabled={isSaving}>
+                                {isSaving ? "Saving..." : "Save"}
+                            </Button>
+                        )}
                     </DrawerFooter>
                 </div>
             </DrawerContent>

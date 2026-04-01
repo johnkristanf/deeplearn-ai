@@ -18,6 +18,9 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { useParams } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
+import { CourseService } from "@/services/courses/courses.service"
 import { type Course } from "@/lib/courses-data"
 
 export default function LearnLayout({
@@ -25,7 +28,27 @@ export default function LearnLayout({
 }: {
     children: React.ReactNode
 }) {
+    const params = useParams()
+    const courseId = params?.courseId as string
     const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null)
+
+    const { data: dbCourses = [] } = useQuery({
+        queryKey: ["courses"],
+        queryFn: () => CourseService.getCourses(),
+    })
+
+    // Sync selected course from URL
+    React.useEffect(() => {
+        if (courseId && dbCourses.length > 0) {
+            const course = dbCourses.find((c: any) => c.id.toString() === courseId)
+            if (course) {
+                // Map API title to lib topic if necessary, or just use course
+                setSelectedCourse({
+                    ...course,
+                })
+            }
+        }
+    }, [courseId, dbCourses])
 
     return (
         <SidebarProvider>
@@ -57,7 +80,7 @@ export default function LearnLayout({
                                     <>
                                         <BreadcrumbSeparator />
                                         <BreadcrumbItem>
-                                            <BreadcrumbPage>{selectedCourse.title}</BreadcrumbPage>
+                                            <BreadcrumbPage>{selectedCourse.topic}</BreadcrumbPage>
                                         </BreadcrumbItem>
                                     </>
                                 )}

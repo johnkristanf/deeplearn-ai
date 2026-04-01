@@ -26,15 +26,14 @@ import {
 import { CourseDrawer } from "./course-drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { BrainCircuit, SquarePen } from "lucide-react"
-import { courses, type Course } from "@/lib/courses-data"
-import { useMutation } from "@tanstack/react-query"
+import { BrainCircuit, SquarePen, BookOpen } from "lucide-react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CourseService } from "@/services/courses/courses.service"
 import type { CourseResponse } from "@/types/courses"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  selectedCourse?: Course | null
-  onSelectCourse?: (course: Course) => void
+  selectedCourse?: any | null
+  onSelectCourse?: (course: any) => void
 }
 
 export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSidebarProps) {
@@ -42,6 +41,11 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [courseData, setCourseData] = React.useState<CourseResponse | null>(null)
+
+  const { data: dbCourses = [] } = useQuery({
+    queryKey: ["courses"],
+    queryFn: () => CourseService.getCourses(),
+  })
 
   const generateCourseMutation = useMutation({
     mutationFn: (payload: { topic: string }) => CourseService.generateCourse(payload),
@@ -67,6 +71,10 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
         },
       }
     )
+  }
+
+  const handleSelectCourse = (course: any) => {
+    if (onSelectCourse) onSelectCourse(course)
   }
 
   return (
@@ -128,24 +136,31 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
               </Dialog>
             </SidebarMenuItem>
           </SidebarMenu>
+
+          {/* Generated Courses */}
           <SidebarGroupLabel>Your Courses</SidebarGroupLabel>
           <SidebarMenu>
-            {courses.map((course) => {
-              const Icon = course.icon
-              const isActive = selectedCourse?.id === course.id
-              return (
-                <SidebarMenuItem key={course.id}>
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    onClick={() => onSelectCourse && onSelectCourse(course)}
-                    className="cursor-pointer"
-                  >
-                    <Icon className={`size-4 ${course.color}`} />
-                    <span>{course.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
+            {dbCourses.length > 0 ? (
+              dbCourses.map((course: any) => {
+                const isActive = selectedCourse?.id === course.id
+                return (
+                  <SidebarMenuItem key={course.id}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      onClick={() => handleSelectCourse(course)}
+                      className="cursor-pointer"
+                    >
+                      <BookOpen className="size-4 text-primary" />
+                      <span>{course.topic}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })
+            ) : (
+              <p className="px-3 py-2 text-sm text-muted-foreground italic">
+                No courses yet. Create one to get started!
+              </p>
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

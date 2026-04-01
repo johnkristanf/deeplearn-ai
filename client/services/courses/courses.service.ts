@@ -18,4 +18,8 @@ export const CourseService = {
     const response = await api.post("/api/v1/courses/save", payload);
     return response.data;
   },
+  getCourses: async (): Promise<CourseResponse[]> => {
+    const response = await api.get("/api/v1/courses");
+    return response.data;
+  },
 };

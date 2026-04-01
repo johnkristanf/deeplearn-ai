@@ -1,12 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GraduationCap } from "lucide-react"
-import { courses } from "@/lib/courses-data"
 
 export default function LearnPage() {
+    const courses = []
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-bold tracking-tight">Courses</h1>
+                <h1 className="text-4xl font-bold tracking-tight">Courses (DIRI TONG MGA COURSES CARDS) </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl">
                     Welcome to DeepLearn. Select a course from the sidebar or click a card below to explore modules and lessons.
                 </p>

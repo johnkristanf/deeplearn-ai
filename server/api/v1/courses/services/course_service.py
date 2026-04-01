@@ -4,11 +4,21 @@ from ..schemas import CourseResponse, CourseSaveRequest
 from ...modules.schemas import Module
 from ...lessons.schemas import Lesson
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from ...courses.models import Course as CourseModel
 from ...modules.models import Module as ModuleModel
 from ...lessons.models import Lesson as LessonModel
+from typing import List
 
 class CourseService:
+    async def get_courses(self, db: AsyncSession) -> List[CourseModel]:
+        stmt = select(CourseModel).options(
+            selectinload(CourseModel.modules).selectinload(ModuleModel.lessons)
+        ).order_by(CourseModel.created_at.desc())
+        
+        result = await db.execute(stmt)
+        return result.scalars().all()
     async def generate_course(self, topic: str) -> CourseResponse:
 
         # 1. Generate Modules
