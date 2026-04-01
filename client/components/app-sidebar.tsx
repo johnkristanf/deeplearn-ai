@@ -27,6 +27,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { BrainCircuit, SquarePen } from "lucide-react"
 import { courses, type Course } from "@/lib/courses-data"
+import { useMutation } from "@tanstack/react-query"
+import { CourseService } from "@/services/courses/courses.service"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   selectedCourse?: Course | null
@@ -36,14 +38,31 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSidebarProps) {
   const [topic, setTopic] = React.useState("")
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [jsonOutput, setJsonOutput] = React.useState<string | null>(null)
+
+  const generateCourseMutation = useMutation({
+    mutationFn: (payload: { topic: string }) => CourseService.generateCourse(payload),
+  })
+  const isLoading = generateCourseMutation.isPending
 
   const handleCreateCourse = () => {
     if (!topic.trim()) return
-    // For now, we'll just log it or handle state appropriately.
-    // In a real app, this would make an API call to generate the course.
-    console.log("Creating course for topic:", topic)
-    setIsDialogOpen(false)
-    setTopic("")
+
+    setJsonOutput(null)
+
+    generateCourseMutation.mutate(
+      { topic },
+      {
+        onSuccess: (data) => {
+          console.log("Course API response:", data)
+          setJsonOutput(JSON.stringify(data, null, 2))
+        },
+        onError: (error) => {
+          console.error("Error creating course:", error)
+          setJsonOutput(JSON.stringify({ error: "Failed to generate course" }, null, 2))
+        },
+      }
+    )
   }
 
   return (
@@ -90,12 +109,20 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
                       value={topic}
                       onChange={(e) => setTopic(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleCreateCourse()
+                        if (e.key === 'Enter' && !isLoading) handleCreateCourse()
                       }}
+                      disabled={isLoading}
                     />
+                    {jsonOutput && (
+                      <div className="mt-2 max-h-[300px] overflow-auto rounded-md bg-muted p-4">
+                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap">{jsonOutput}</pre>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleCreateCourse}>Create Course</Button>
+                    <Button onClick={handleCreateCourse} disabled={isLoading}>
+                      {isLoading ? "Generating..." : "Create Course"}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
