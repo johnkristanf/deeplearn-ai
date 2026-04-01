@@ -1,8 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.v1.api import api_router
+from contextlib import asynccontextmanager
+from core.database import database
 
-app = FastAPI(title="DeepLearn AI API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Connecting to Database...")
+    database.connect()
+    yield
+    print("Disconnecting from Database...")
+    await database.close()
+
+app = FastAPI(title="DeepLearn AI API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

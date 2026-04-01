@@ -23,12 +23,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { CourseDrawer } from "./course-drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { BrainCircuit, SquarePen } from "lucide-react"
 import { courses, type Course } from "@/lib/courses-data"
 import { useMutation } from "@tanstack/react-query"
 import { CourseService } from "@/services/courses/courses.service"
+import type { CourseResponse } from "@/types/courses"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   selectedCourse?: Course | null
@@ -38,7 +40,8 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSidebarProps) {
   const [topic, setTopic] = React.useState("")
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [jsonOutput, setJsonOutput] = React.useState<string | null>(null)
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
+  const [courseData, setCourseData] = React.useState<CourseResponse | null>(null)
 
   const generateCourseMutation = useMutation({
     mutationFn: (payload: { topic: string }) => CourseService.generateCourse(payload),
@@ -48,18 +51,19 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
   const handleCreateCourse = () => {
     if (!topic.trim()) return
 
-    setJsonOutput(null)
+    setCourseData(null)
 
     generateCourseMutation.mutate(
       { topic },
       {
         onSuccess: (data) => {
           console.log("Course API response:", data)
-          setJsonOutput(JSON.stringify(data, null, 2))
+          setCourseData(data)
+          setIsDialogOpen(false)
+          setIsDrawerOpen(true)
         },
         onError: (error) => {
           console.error("Error creating course:", error)
-          setJsonOutput(JSON.stringify({ error: "Failed to generate course" }, null, 2))
         },
       }
     )
@@ -113,13 +117,9 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
                       }}
                       disabled={isLoading}
                     />
-                    {jsonOutput && (
-                      <div className="mt-2 max-h-[300px] overflow-auto rounded-md bg-muted p-4">
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap">{jsonOutput}</pre>
-                      </div>
-                    )}
                   </div>
                   <DialogFooter>
+
                     <Button onClick={handleCreateCourse} disabled={isLoading}>
                       {isLoading ? "Generating..." : "Create Course"}
                     </Button>
@@ -150,6 +150,13 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
         </SidebarGroup>
       </SidebarContent>
       <SidebarRail />
+
+      <CourseDrawer
+        isOpen={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        courseData={courseData}
+      />
     </Sidebar>
   )
 }
+
