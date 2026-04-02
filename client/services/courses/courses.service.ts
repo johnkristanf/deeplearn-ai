@@ -20,6 +20,7 @@ export const CourseService = {
   },
   getCourses: async (): Promise<CourseResponse[]> => {
     const response = await api.get("/api/v1/courses");
+    console.log("courses", response.data);
     return response.data;
   },
 };

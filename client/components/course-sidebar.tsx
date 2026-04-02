@@ -23,6 +23,7 @@ import {
     SidebarMenuSubItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { type Course } from "@/lib/courses-data"
 
 interface CourseSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -40,40 +41,42 @@ export function CourseSidebar({ course, ...props }: CourseSidebarProps) {
                     <span className="font-semibold text-sm">{course.topic}</span>
                 </div>
             </SidebarHeader>
-            <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel>Modules</SidebarGroupLabel>
-                    <SidebarMenu>
-                        {course.modules.map((module) => (
-                            <Collapsible key={module.id} defaultOpen className="group/collapsible">
-                                <SidebarMenuItem className="mb-2">
-                                    <CollapsibleTrigger asChild>
-                                        <SidebarMenuButton className="font-medium h-auto py-2 items-start gap-3">
-                                            <span className="flex-1 text-left whitespace-normal leading-tight">{module.title}</span>
-                                            <ChevronRight className="mt-0.5 ml-auto size-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                                        </SidebarMenuButton>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <SidebarMenuSub className="mr-0 pr-0">
-                                            {module.lessons.map((lesson) => (
-                                                <SidebarMenuSubItem key={lesson.id}>
-                                                    <SidebarMenuSubButton asChild className="h-auto py-1.5 px-3">
-                                                        <Link
-                                                            href={`/learn/${course.id}/${module.id}/${lesson.id}`}
-                                                            className="whitespace-normal leading-snug"
-                                                        >
-                                                            {lesson.title}
-                                                        </Link>
-                                                    </SidebarMenuSubButton>
-                                                </SidebarMenuSubItem>
-                                            ))}
-                                        </SidebarMenuSub>
-                                    </CollapsibleContent>
-                                </SidebarMenuItem>
-                            </Collapsible>
-                        ))}
-                    </SidebarMenu>
-                </SidebarGroup>
+            <SidebarContent className="overflow-hidden">
+                <ScrollArea className="h-full">
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Modules</SidebarGroupLabel>
+                        <SidebarMenu>
+                            {course.modules.map((module) => (
+                                <Collapsible key={module.id} defaultOpen className="group/collapsible">
+                                    <SidebarMenuItem className="mb-2">
+                                        <CollapsibleTrigger asChild>
+                                            <SidebarMenuButton className="font-medium h-auto py-2 items-start gap-3">
+                                                <span className="flex-1 text-left whitespace-normal leading-tight">{module.title}</span>
+                                                <ChevronRight className="mt-0.5 ml-auto size-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                            </SidebarMenuButton>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <SidebarMenuSub className="mr-0 pr-0">
+                                                {module.lessons.map((lesson) => (
+                                                    <SidebarMenuSubItem key={lesson.id}>
+                                                        <SidebarMenuSubButton asChild className="h-auto py-1.5 px-3">
+                                                            <Link
+                                                                href={`/learn/${course.id}/${module.id}/${lesson.id}`}
+                                                                className="whitespace-normal leading-snug"
+                                                            >
+                                                                {lesson.title}
+                                                            </Link>
+                                                        </SidebarMenuSubButton>
+                                                    </SidebarMenuSubItem>
+                                                ))}
+                                            </SidebarMenuSub>
+                                        </CollapsibleContent>
+                                    </SidebarMenuItem>
+                                </Collapsible>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroup>
+                </ScrollArea>
             </SidebarContent>
             <SidebarRail />
         </Sidebar>

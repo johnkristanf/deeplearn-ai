@@ -30,6 +30,7 @@ import { BrainCircuit, SquarePen, BookOpen } from "lucide-react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CourseService } from "@/services/courses/courses.service"
 import type { CourseResponse } from "@/types/courses"
+import { toast } from "sonner"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   selectedCourse?: any | null
@@ -42,9 +43,15 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [courseData, setCourseData] = React.useState<CourseResponse | null>(null)
 
+  const queryClient = useQueryClient()
+
   const { data: dbCourses = [] } = useQuery({
     queryKey: ["courses"],
     queryFn: () => CourseService.getCourses(),
+    refetchInterval: (query) => {
+      const courses = query.state.data as any[]
+      return courses?.some((c: any) => !c.is_active) ? 3000 : false
+    },
   })
 
   const generateCourseMutation = useMutation({
@@ -61,13 +68,19 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
       { topic },
       {
         onSuccess: (data) => {
-          console.log("Course API response:", data)
-          setCourseData(data)
+          console.log("Course generation started:", data)
+          toast.success("Generation started!", {
+            description: `We're currently generating modules and lessons for "${topic}".`,
+          })
           setIsDialogOpen(false)
-          setIsDrawerOpen(true)
+          // We don't open the drawer immediately anymore because the course is still generating
+          // setIsDrawerOpen(true)
+          // setCourseData(data)
+          queryClient.invalidateQueries({ queryKey: ["courses"] })
         },
         onError: (error) => {
           console.error("Error creating course:", error)
+          toast.error("Failed to start generation")
         },
       }
     )
@@ -145,14 +158,24 @@ export function AppSidebar({ selectedCourse, onSelectCourse, ...props }: AppSide
                 const isActive = selectedCourse?.id === course.id
                 return (
                   <SidebarMenuItem key={course.id}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => handleSelectCourse(course)}
-                      className="cursor-pointer"
-                    >
-                      <BookOpen className="size-4 text-primary" />
-                      <span>{course.topic}</span>
-                    </SidebarMenuButton>
+                    <div className="flex flex-col gap-1 w-full px-2 py-1">
+                      {!course.is_active && (
+                        <span className="text-[10px] uppercase font-bold text-primary animate-pulse ml-3">
+                          Generating...
+                        </span>
+                      )}
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => course.is_active && handleSelectCourse(course)}
+                        className={`cursor-pointer ${!course.is_active ? "opacity-70 cursor-not-allowed" : ""}`}
+                        disabled={!course.is_active}
+                      >
+                        <BookOpen className={`size-4 ${!course.is_active ? "text-muted-foreground" : "text-primary"}`} />
+                        <span className={!course.is_active ? "text-muted-foreground" : ""}>
+                          {course.topic}
+                        </span>
+                      </SidebarMenuButton>
+                    </div>
                   </SidebarMenuItem>
                 )
               })

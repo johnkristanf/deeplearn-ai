@@ -2,6 +2,7 @@ from pydantic import BaseModel, model_validator
 from typing import List, Optional
 
 class LessonContent(BaseModel):
+    title: str
     hook: str
     objectives: List[str]
     lecture: str
@@ -26,6 +27,7 @@ class Lesson(BaseModel):
         if hasattr(data, 'hook') and not getattr(data, 'content', None):
             # If it's an ORM model with flat fields, wrap them in a content dict
             content_data = {
+                "title": getattr(data, "title", ""),
                 "hook": getattr(data, "hook", ""),
                 "objectives": getattr(data, "objectives", []),
                 "lecture": getattr(data, "lecture", ""),

@@ -5,3 +5,7 @@ python-dotenv
 sqlalchemy
 alembic
 asyncpg
+celery
+redis
+asyncio
+aiohttp

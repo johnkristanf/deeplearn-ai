@@ -53,6 +53,11 @@ export default function LessonPage() {
 
     const { content } = lesson
 
+    const formatMarkdown = (text: string | undefined) => {
+        if (!text) return ""
+        return text.replace(/\n\n\n\n/g, "\n\n&nbsp;\n\n")
+    }
+
     return (
         <div className="max-w-4xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header */}
@@ -74,7 +79,7 @@ export default function LessonPage() {
                             <span>Context</span>
                         </div>
                         <div className="text-xl md:text-2xl font-medium leading-relaxed italic text-foreground/90">
-                            <ReactMarkdown>{content.hook}</ReactMarkdown>
+                            <ReactMarkdown>{formatMarkdown(content.hook)}</ReactMarkdown>
                         </div>
                     </div>
                 </section>
@@ -95,7 +100,7 @@ export default function LessonPage() {
                                         <div className="mt-1 p-1 rounded-full bg-primary/10 text-primary">
                                             <CheckCircle2 className="size-3" />
                                         </div>
-                                        <span className="text-sm font-medium"><ReactMarkdown>{obj}</ReactMarkdown></span>
+                                        <span className="text-sm font-medium"><ReactMarkdown>{formatMarkdown(obj)}</ReactMarkdown></span>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -114,7 +119,7 @@ export default function LessonPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg leading-relaxed text-foreground/80 prose prose-invert max-w-none">
-                                <ReactMarkdown>{content.analogy}</ReactMarkdown>
+                                <ReactMarkdown>{formatMarkdown(content.analogy)}</ReactMarkdown>
                             </div>
                         </CardContent>
                     </Card>
@@ -125,10 +130,10 @@ export default function LessonPage() {
                     <section className="space-y-6">
                         <div className="flex items-center gap-2 text-muted-foreground font-semibold uppercase tracking-widest text-xs">
                             <BookOpen className="size-4" />
-                            <span>The Concept</span>
+                            <span>The Lecture</span>
                         </div>
                         <div className="prose prose-invert max-w-none prose-headings:font-bold prose-p:text-foreground/80 prose-li:text-foreground/80 prose-strong:text-primary prose-code:text-primary-foreground prose-code:bg-primary/20 prose-code:px-1 prose-code:rounded prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border/50">
-                            <ReactMarkdown>{content.lecture}</ReactMarkdown>
+                            <ReactMarkdown>{formatMarkdown(content.lecture)}</ReactMarkdown>
                         </div>
                     </section>
                 )}
@@ -138,10 +143,10 @@ export default function LessonPage() {
                     <section className="p-8 rounded-3xl bg-secondary/20 border border-secondary/20 space-y-4">
                         <div className="flex items-center gap-2 text-primary font-semibold uppercase tracking-widest text-xs">
                             <Globe className="size-4" />
-                            <span>In Action</span>
+                            <span>Real World Use Cases</span>
                         </div>
                         <div className="prose prose-invert max-w-none italic text-foreground/90">
-                            <ReactMarkdown>{content.real_world_example}</ReactMarkdown>
+                            <ReactMarkdown>{formatMarkdown(content.real_world_example)}</ReactMarkdown>
                         </div>
                     </section>
                 )}
@@ -157,7 +162,7 @@ export default function LessonPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="prose prose-invert max-w-none text-muted-foreground">
-                                <ReactMarkdown>{content.summary}</ReactMarkdown>
+                                <ReactMarkdown>{formatMarkdown(content.summary)}</ReactMarkdown>
                             </div>
                         </CardContent>
                     </Card>

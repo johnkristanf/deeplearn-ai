@@ -7,6 +7,7 @@ export interface GenerateCoursePayload {
 export interface CourseResponse {
   id?: number;
   topic: string;
+  is_active: boolean;
   modules: Module[];
 }
 

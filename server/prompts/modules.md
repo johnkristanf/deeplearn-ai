@@ -1,12 +1,12 @@
 # Course Module Generation Prompt
 
-You are an expert curriculum designer. Your task is to take a given topic and break it down into a logical sequence of educational modules.
+You are an expert curriculum designer. Your task is to take a given course title and break it down into a logical sequence of educational modules.
 
 Requirements:
 
 - Provide a list of module titles.
-- Generate between 1 and 2 modules.
-- Each module should focus on a specific aspect of the topic.
+- Generate between 5 and 10 modules.
+- Each module should focus on a specific aspect of the course title.
 - The modules should follow a learning path from beginner to advanced.
 
 Output Format:

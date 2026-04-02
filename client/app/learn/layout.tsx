@@ -58,7 +58,7 @@ export default function LearnLayout({
                 onSelectCourse={setSelectedCourse}
             />
 
-            <SidebarInset className="flex flex-row p-0 min-h-svh">
+            <SidebarInset className="flex flex-row p-0 h-svh overflow-hidden">
                 {/* Secondary Sidebar: Modules + Lessons for the selected course */}
                 {selectedCourse && (
                     <CourseSidebar course={selectedCourse} />
