@@ -26,6 +26,7 @@ from core.database import Base, DATABASE_URL
 from api.v1.courses.models import Course
 from api.v1.modules.models import Module
 from api.v1.lessons.models import Lesson
+from api.v1.lessons.question_models import LessonQuestion
 
 target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", DATABASE_URL)

@@ -7,6 +7,7 @@ class Lesson(Base):
     __tablename__ = "lessons"
     
     id = Column(Integer, primary_key=True, index=True)
+    tag = Column(String, index=True)
     module_id = Column(Integer, ForeignKey("modules.id"))
     title = Column(String)
     hook = Column(Text)
@@ -17,3 +18,4 @@ class Lesson(Base):
     summary = Column(Text)
     
     module = relationship("Module", back_populates="lessons")
+    questions = relationship("LessonQuestion", back_populates="lesson", cascade="all, delete-orphan", order_by="LessonQuestion.order")

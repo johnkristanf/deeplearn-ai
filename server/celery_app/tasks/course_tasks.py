@@ -19,46 +19,62 @@ def generate_course_task(course_id: int, course_title: str):
     return asyncio.run(_generate_course_async(course_id, course_title))
 
 async def _generate_course_async(course_id: int, course_title: str):
-    # Ensure database is connected. 
+    # Ensure database is connected.
     # In a production worker, this might be handled via celery signals (worker_ready).
     database.connect()
-    
+
     try:
         async for db in database.get_session():
             try:
-                # 1. Generate Modules
-                module_titles = await ModuleService.generate_modules(course_title)
-                
-                for m_title in module_titles:
-                    # 2. Generate Lessons
-                    lesson_content = await LessonService.generate_lesson_content(course_title, m_title)
-                    
-                    logger.info(f"LESSONS CONTENT: {lesson_content}")
+                # 1. Generate all modules with their recommended lesson titles in a single LLM call.
+                modules_with_lessons = await ModuleService.generate_modules(course_title)
+                logger.info(f"Generated {len(modules_with_lessons)} modules for course '{course_title}'")
 
-                    # 3. Create Module and Lesson records
+                for module_plan in modules_with_lessons:
+                    # 2. Persist the module first to get its DB id.
                     db_module = await ModuleService.create_module(
-                        db, 
-                        course_id, 
-                        ModuleSchema(title=m_title)
+                        db,
+                        course_id,
+                        ModuleSchema(title=module_plan.title)
                     )
-                    
-                    await LessonService.create_lesson(
-                        db, 
-                        db_module.id, 
-                        LessonSchema(title=lesson_content.title, content=lesson_content)
+
+                    # 3. Generate full lesson content AND questions for every lesson title concurrently.
+                    lesson_results = await asyncio.gather(
+                        *[
+                            _generate_lesson_with_questions(course_title, module_plan.title, lesson_title)
+                            for lesson_title in module_plan.lesson_titles
+                        ]
                     )
-                    
-                # 4. Update Course status
+
+                    logger.info(
+                        f"Generated {len(lesson_results)} lessons (with questions) for module '{module_plan.title}'"
+                    )
+
+                    # 4. Persist lessons and their questions in order, linked to the parent module.
+                    for lesson_content, questions in lesson_results:
+                        db_lesson = await LessonService.create_lesson(
+                            db,
+                            db_module.id,
+                            LessonSchema(title=lesson_content.title, content=lesson_content)
+                        )
+                        logger.info(f"Created lesson '{lesson_content.title}' with ID {db_lesson.id}")
+                        
+                        await LessonService.create_questions(db, db_lesson.id, questions)
+                        logger.info(f"Created {len(questions)} questions for lesson '{lesson_content.title}'")
+
+                # 5. Mark course as active now that all content is saved.
                 await db.execute(
                     update(CourseModel)
                     .where(CourseModel.id == course_id)
                     .values(is_active=1)
                 )
                 await db.commit()
-                logger.info(f"Course {course_id} generation completed.")
-                
+                logger.info(f"Course {course_id} generation completed successfully.")
+
             except Exception as e:
-                logger.error(f"Error in generate_course_task for course {course_id}: {e}", exc_info=True)
+                logger.error(
+                    f"Error in generate_course_task for course {course_id}: {e}", exc_info=True
+                )
                 await db.execute(
                     update(CourseModel)
                     .where(CourseModel.id == course_id)
@@ -67,3 +83,17 @@ async def _generate_course_async(course_id: int, course_title: str):
                 await db.commit()
     finally:
         await database.close()
+
+
+async def _generate_lesson_with_questions(
+    course_title: str, module_title: str, lesson_title: str
+) -> tuple:
+    """
+    Concurrently generates lesson content and its 5 reinforcement questions.
+    Returns (LessonContent, List[str]) tuple.
+    """
+    lesson_content, questions = await asyncio.gather(
+        LessonService.generate_lesson_content(course_title, module_title, lesson_title),
+        LessonService.generate_questions(course_title, module_title, lesson_title),
+    )
+    return lesson_content, questions

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useParams } from "next/navigation"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import ReactMarkdown from "react-markdown"
 import {
     BookOpen,
@@ -12,28 +12,60 @@ import {
     CheckCircle2,
     Zap,
     Globe,
-    StickyNote
+    StickyNote,
+    BrainCircuit,
+    Loader2,
+    Star
 } from "lucide-react"
 import { CourseService } from "@/services/courses/courses.service"
+import { LessonService } from "@/services/lessons/lessons.service"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
+import type { LessonQuestion } from "@/types/lessons"
+import { QuestionCard } from "@/components/lessons/question-card"
+import { LessonSkeleton } from "@/components/lessons/lesson-skeleton"
 
 export default function LessonPage() {
     const params = useParams()
-    const courseId = params?.courseId as string
-    const moduleId = params?.moduleId as string
-    const lessonId = params?.lessonId as string
+    const queryClient = useQueryClient()
+    const courseTag = params?.courseTag as string
+    const moduleTag = params?.moduleTag as string
+    const lessonTag = params?.lessonTag as string
+
+    const [answers, setAnswers] = React.useState<Record<number, string>>({})
+    const [submittingId, setSubmittingId] = React.useState<number | null>(null)
 
     const { data: dbCourses = [], isLoading } = useQuery({
         queryKey: ["courses"],
         queryFn: () => CourseService.getCourses(),
     })
 
-    const course = dbCourses.find((c: any) => c.id.toString() === courseId)
-    const module = course?.modules.find((m: any) => m.id.toString() === moduleId)
-    const lesson = module?.lessons.find((l: any) => l.id.toString() === lessonId)
+    const { mutate: submitAnswer } = useMutation({
+        mutationFn: ({ questionId, answer }: { questionId: number; answer: string }) =>
+            LessonService.submitAnswer(questionId, answer),
+        onMutate: (variables) => {
+            setSubmittingId(variables.questionId)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["courses"] })
+            setSubmittingId(null)
+        },
+        onError: () => {
+            setSubmittingId(null)
+            // Ideally display a toast notification here
+        }
+    })
+
+    const course = dbCourses.find((c: any) => c.tag === courseTag)
+    const module = course?.modules.find((m: any) => m.tag === moduleTag)
+    const lesson = module?.lessons.find((l: any) => l.tag === lessonTag)
+
+    console.log("[DEBUG 404] PARAMS:", { courseTag, moduleTag, lessonTag })
+    console.log("[DEBUG 404] Found course:", !!course, course?.tag)
+    console.log("[DEBUG 404] Found module:", !!module, module?.tag)
+    console.log("[DEBUG 404] Found lesson:", !!lesson, lesson?.tag)
 
     if (isLoading) {
         return <LessonSkeleton />
@@ -51,11 +83,15 @@ export default function LessonPage() {
         )
     }
 
-    const { content } = lesson
+    const { content, questions = [] } = lesson
 
     const formatMarkdown = (text: string | undefined) => {
         if (!text) return ""
         return text.replace(/\n\n\n\n/g, "\n\n&nbsp;\n\n")
+    }
+
+    const handleAnswerChange = (questionId: number, value: string) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }))
     }
 
     return (
@@ -167,6 +203,35 @@ export default function LessonPage() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* 7. Reinforcement Questions */}
+                {questions.length > 0 && (
+                    <section className="space-y-6">
+                        <div className="flex items-center gap-2 text-primary font-semibold uppercase tracking-widest text-xs">
+                            <BrainCircuit className="size-4" />
+                            <span>Test Your Understanding</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground -mt-2">
+                            Answer these questions in your own words to reinforce what you just learned.
+                        </p>
+                        <div className="space-y-5">
+                            {questions
+                                .slice()
+                                .sort((a: LessonQuestion, b: LessonQuestion) => a.order - b.order)
+                                .map((q: LessonQuestion, index: number) => (
+                                    <QuestionCard
+                                        key={q.id}
+                                        index={index}
+                                        question={q}
+                                        value={answers[q.id] ?? ""}
+                                        onChange={(val) => handleAnswerChange(q.id, val)}
+                                        onSubmit={() => submitAnswer({ questionId: q.id, answer: answers[q.id] })}
+                                        isSubmitting={submittingId === q.id}
+                                    />
+                                ))}
+                        </div>
+                    </section>
+                )}
             </div>
 
             {/* Bottom Navigation */}
@@ -184,18 +249,4 @@ export default function LessonPage() {
     )
 }
 
-function LessonSkeleton() {
-    return (
-        <div className="max-w-4xl mx-auto space-y-12">
-            <div className="space-y-4">
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-12 w-3/4" />
-            </div>
-            <Skeleton className="h-40 w-full rounded-3xl" />
-            <div className="grid gap-8">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-64 w-full" />
-            </div>
-        </div>
-    )
-}
+

@@ -10,6 +10,7 @@ class CourseTitleResponse(BaseModel):
 
 class CourseResponse(BaseModel):
     id: Optional[int] = None
+    tag: Optional[str] = None
     topic: str
     is_active: bool = False
     modules: List[Module] = []
@@ -18,6 +19,7 @@ class CourseResponse(BaseModel):
 
 class CourseInResponse(BaseModel):
     id: int
+    tag: str
     topic: str
     is_active: int
 

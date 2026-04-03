@@ -6,6 +6,7 @@ class Module(Base):
     __tablename__ = "modules"
     
     id = Column(Integer, primary_key=True, index=True)
+    tag = Column(String, index=True)
     course_id = Column(Integer, ForeignKey("courses.id"))
     title = Column(String)
     

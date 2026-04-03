@@ -29,7 +29,7 @@ export default function LearnLayout({
     children: React.ReactNode
 }) {
     const params = useParams()
-    const courseId = params?.courseId as string
+    const courseTag = params?.courseTag as string
     const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null)
 
     const { data: dbCourses = [] } = useQuery({
@@ -39,8 +39,8 @@ export default function LearnLayout({
 
     // Sync selected course from URL
     React.useEffect(() => {
-        if (courseId && dbCourses.length > 0) {
-            const course = dbCourses.find((c: any) => c.id.toString() === courseId)
+        if (courseTag && dbCourses.length > 0) {
+            const course = dbCourses.find((c: any) => c.tag === courseTag)
             if (course) {
                 // Map API title to lib topic if necessary, or just use course
                 setSelectedCourse({
@@ -48,7 +48,7 @@ export default function LearnLayout({
                 })
             }
         }
-    }, [courseId, dbCourses])
+    }, [courseTag, dbCourses])
 
     return (
         <SidebarProvider>

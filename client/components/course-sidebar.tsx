@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { BookOpen, ChevronRight } from "lucide-react"
 
 import {
@@ -31,6 +32,9 @@ interface CourseSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function CourseSidebar({ course, ...props }: CourseSidebarProps) {
+    const params = useParams()
+    const activeLessonTag = params?.lessonTag as string
+
     return (
         <Sidebar collapsible="none" className="border-l w-64 shrink-0" {...props}>
             <SidebarHeader className="px-4 py-3 border-b">
@@ -59,10 +63,10 @@ export function CourseSidebar({ course, ...props }: CourseSidebarProps) {
                                             <SidebarMenuSub className="mr-0 pr-0">
                                                 {module.lessons.map((lesson) => (
                                                     <SidebarMenuSubItem key={lesson.id}>
-                                                        <SidebarMenuSubButton asChild className="h-auto py-1.5 px-3">
+                                                        <SidebarMenuSubButton asChild isActive={lesson.tag === activeLessonTag} className="h-auto py-1.5 px-3">
                                                             <Link
-                                                                href={`/learn/${course.id}/${module.id}/${lesson.id}`}
-                                                                className="whitespace-normal leading-snug"
+                                                                href={`/learn/${course.tag}/${module.tag}/${lesson.tag}`}
+                                                                className={`whitespace-normal leading-snug ${lesson.tag === activeLessonTag ? "text-primary font-medium" : ""}`}
                                                             >
                                                                 {lesson.title}
                                                             </Link>

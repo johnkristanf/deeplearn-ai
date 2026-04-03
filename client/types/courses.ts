@@ -6,6 +6,7 @@ export interface GenerateCoursePayload {
 
 export interface CourseResponse {
   id?: number;
+  tag?: string;
   topic: string;
   is_active: boolean;
   modules: Module[];

@@ -1,3 +1,4 @@
+import re
 from ...modules.services.module_service import ModuleService
 from ...lessons.services.lesson_service import LessonService
 from ..schemas import CourseResponse, CourseSaveRequest, CourseTitleResponse
@@ -10,12 +11,13 @@ from sqlalchemy.orm import selectinload
 from ...courses.models import Course as CourseModel
 from ...modules.models import Module as ModuleModel
 from ...lessons.models import Lesson as LessonModel
+from ...lessons.question_models import LessonQuestion as LessonQuestionModel  # registers mapper
 from typing import List
 
 class CourseService:
     async def get_courses(self, db: AsyncSession) -> List[CourseModel]:
         stmt = select(CourseModel).options(
-            selectinload(CourseModel.modules).selectinload(ModuleModel.lessons)
+            selectinload(CourseModel.modules).selectinload(ModuleModel.lessons).selectinload(LessonModel.questions)
         ).order_by(CourseModel.created_at.desc())
         
         result = await db.execute(stmt)
@@ -54,6 +56,7 @@ class CourseService:
             course_data = request.course
             db_course = CourseModel(
                 topic=course_data.topic,
+                tag=re.sub(r'[^a-z0-9]+', '-', course_data.topic.lower()).strip('-'),
                 user_id="1" # Test user_id
             )
             db.add(db_course)
@@ -75,6 +78,7 @@ class CourseService:
     async def create_course(self, db: AsyncSession, course_title: str, user_id: str, is_active: int) -> CourseModel:
         db_course = CourseModel(
             topic=course_title,
+            tag=re.sub(r'[^a-z0-9]+', '-', course_title.lower()).strip('-'),
             user_id=user_id,
             is_active=is_active
         )

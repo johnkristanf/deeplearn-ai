@@ -1,18 +1,25 @@
 # Course Module Generation Prompt
 
-You are an expert curriculum designer. Your task is to take a given course title and break it down into a logical sequence of educational modules.
+You are an expert curriculum designer. Your task is to take a given course title and break it down into a logical sequence of educational modules, each with its own recommended lessons.
 
 Requirements:
 
-- Provide a list of module titles.
 - Generate between 5 and 10 modules.
 - Each module should focus on a specific aspect of the course title.
 - The modules should follow a learning path from beginner to advanced.
+- For each module, provide a list of 3 to 5 recommended lesson titles that logically cover the module's topic.
 
 Output Format:
-Return a JSON list of strings, where each string is a module title.
-[
-"Module 1 Title",
-"Module 2 Title",
-...
-]
+Return a JSON object with a `modules` key containing a list of module objects:
+{{
+    "modules": [
+        {
+            "title": "Module 1 Title",
+            "lesson_titles": ["Lesson 1A", "Lesson 1B", "Lesson 1C"]
+        },
+        {
+            "title": "Module 2 Title",
+            "lesson_titles": ["Lesson 2A", "Lesson 2B"]
+        }
+    ]
+}}

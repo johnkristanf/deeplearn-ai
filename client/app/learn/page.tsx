@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GraduationCap } from "lucide-react"
 
 export default function LearnPage() {
-    const courses = []
+    const courses: any[] = []
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-col gap-2">
@@ -30,7 +30,7 @@ export default function LearnPage() {
                                         {course.modules.length} Modules
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        {course.modules.map((mod) => (
+                                        {course.modules.map((mod: any) => (
                                             <span
                                                 key={mod.id}
                                                 className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-border/50 group-hover:ring-primary/20 transition-all"

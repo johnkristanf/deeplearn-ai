@@ -13,10 +13,33 @@ class LessonContent(BaseModel):
     class Config:
         from_attributes = True
 
+class LessonQuestionsResponse(BaseModel):
+    """Schema returned by the LLM for lesson reinforcement questions."""
+    questions: List[str]
+
+class LessonQuestion(BaseModel):
+    id: Optional[int] = None
+    question: str
+    answer: Optional[str] = None
+    score: Optional[int] = None
+    order: int
+
+    class Config:
+        from_attributes = True
+
+class SubmitAnswerRequest(BaseModel):
+    answer: str
+
+class GradeResponse(BaseModel):
+    """Schema returned by the LLM for grading a user's answer."""
+    score: int
+
 class Lesson(BaseModel):
     id: Optional[int] = None
+    tag: Optional[str] = None
     title: str
     content: Optional[LessonContent] = None
+    questions: List[LessonQuestion] = []
 
     class Config:
         from_attributes = True
@@ -35,10 +58,11 @@ class Lesson(BaseModel):
                 "real_world_example": getattr(data, "real_world_example", ""),
                 "summary": getattr(data, "summary", ""),
             }
-            # Return a dict that Pydantic can use to initialize the model
             return {
                 "id": getattr(data, "id", None),
+                "tag": getattr(data, "tag", None),
                 "title": getattr(data, "title", ""),
-                "content": content_data
+                "content": content_data,
+                "questions": getattr(data, "questions", []),
             }
         return data
